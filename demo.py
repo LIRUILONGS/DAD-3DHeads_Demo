@@ -47,6 +47,7 @@ def demo(
     image = read_rgb_image(input_image_path)
     predictor = FaceMeshPredictor.dad_3dnet()
     predictions = predictor(image)
+    
 
     # Get the resulting output.
     result = demo_funcs[type_of_output].processor(predictions, image)
