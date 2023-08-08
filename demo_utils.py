@@ -64,17 +64,32 @@ def draw_mesh(predictions: Dict[str, torch.Tensor], image: np.ndarray, subset: s
 
 
 def draw_pose(predictions: Dict[str, torch.Tensor], image: np.ndarray) -> np.ndarray:
+    """
+    @Time    :   2023/08/08 05:42:48
+    @Author  :   liruilonger@gmail.com
+    @Version :   1.0
+    @Desc    :   调整了部分参数
+                    + 小图箭头线低于阈值报错，由0.005 修改为 0.03
+                    + 小图箭头长度影响，箭头太低，调整了长度比 `size = image.shape[0] // 3`  10 修改为 3
+                 Args:
+                   
+                 Returns:
+                   void
+    """
+    
     params_3dmm = predictions["3dmm_params"].float()
     flame_params = FlameParams.from_3dmm(params_3dmm, FLAME_CONSTS)
     rpy = calculate_rpy(flame_params)
-
+    print(f"姿态评估得到的角度{ rpy.roll}，{rpy.pitch},{rpy.yaw}")
     tdx, tdy = image.shape[1] // 2, image.shape[0] // 2
 
     roll = rpy.roll * np.pi / 180
     pitch = rpy.pitch * np.pi / 180
     yaw = -(rpy.yaw * np.pi / 180)
 
-    size = image.shape[0] // 10
+    print(f"姿态评估得到的弧度{roll}，{pitch},{yaw}")
+
+    size = image.shape[0] // 3
 
     x1 = size * (np.cos(yaw) * np.cos(roll)) + tdx
     y1 = size * (np.cos(pitch) * np.sin(roll) + np.cos(roll) * np.sin(pitch) * np.sin(yaw)) + tdy
@@ -85,9 +100,9 @@ def draw_pose(predictions: Dict[str, torch.Tensor], image: np.ndarray) -> np.nda
     x3 = size * (np.sin(yaw)) + tdx
     y3 = size * (-np.cos(yaw) * np.sin(pitch)) + tdy
 
-    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x1), int(y1)), (0, 0, 255), int(image.shape[0] * 0.005))
-    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x2), int(y2)), (0, 255, 0), int(image.shape[0] * 0.005))
-    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x3), int(y3)), (255, 0, 0), int(image.shape[0] * 0.005))
+    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x1), int(y1)), (0, 0, 255), int(image.shape[0] * 0.03))
+    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x2), int(y2)), (0, 255, 0), int(image.shape[0] * 0.03))
+    cv2.arrowedLine(image, (int(tdx), int(tdy)), (int(x3), int(y3)), (255, 0, 0), int(image.shape[0] * 0.03))
 
     return image
 
